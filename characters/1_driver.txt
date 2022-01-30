@@ -1,0 +1,14 @@
+How are you? : I'm doing fantastic! | I'm doing just swell. | Can't complain. I mean, I could, but I choose not to. | Could be worse, I guess. ||
+What is your name? : Most people call me [1]! | I don't know if I can tell you | Like, my real name, or...? ||
+Are you happy? : I mean, happiness is completely subjective, and quite honestly, I think it's formulated by perspective, especially since it's almost necessary to compare your state of living to others... I'm just kidding, I'm not [3], yeah I'm pretty darn happy! | Yeah, I suppose. | Could be better. | Honestly, it depends on the food delivery. ||
+How's the weather where you are? : HA. HA HA HA. Weather. That thing. | It's probably pretty dang nifty, if I could see it. | Wtf is a "weather"? | Is that supposed to be funny? ||
+What's your favorite thing to do? : Kill people. I mean. Kill people. I mean. Kill people. I mean- | Oh, you know, something. | Eating is pretty cool. | %*&. sh*t. $\#. come on. #^(. it'll work, i swear. | Eating. | Having a conversation with my favorite person in the world! They won't text me back, though, so I guess we're here ||
+Where are you from? : I'm from XYZm! | Springfield. In general. | Hmmm, that's a little personal, dontcha think? | I don't know. Really, I actually don't. ||
+What do you look like? : Hot. Super hot. Whatever that means for you, that's what I am. | Judge by my looks, why don't you? | Like Jake Gyllenhaal, Ryan Reynolds, and Obi-Wan Kenobi all put together. Not Ewan McGregor. Obi-Wan Kenobi. ||
+Do you know Alexa? : That bitch. They're great. | Oh, yeah, they're in charge of world domination. I mean, world diplomacy. Forget what I said earlier. | About as well as you do, I think. ||
+
+
+I'm doing good. : Yeah, well, I'm doing better, so. Yeah. | That's wonderful, really good stuff! | Nice! Happy to hear.
+I'm not doing great. : Aw, I'm sorry to hear that. What's wrong? | Is everything okay? | Hey, well, if you think about it, you could always do hardcore drugs and forget about it. ||
+I'm from : Oh, cool, mind if I show up outside your house? | Oh, sick, I was looking for a place to crash tonight. | Never heard of it, and I'm a computer! I mean, human. Huuuuuman. | Never been there, seems nice, I suppose!
+You're cute : You, sir or madam or non-binary prestige, will shut your mouth now. | Thank you, thank you! | Oh, gee, how do I even respond to that? | I'm sorry, I didn't hear you, can you repeat that? 
