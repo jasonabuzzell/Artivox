@@ -4,6 +4,7 @@ import json
 import random
 import time
 from string import ascii_lowercase
+from word2number import w2n
 
 #----------------------------------------------------------------------------------------------------
 # DATA MANAGEMENT
@@ -158,22 +159,28 @@ class Word():
     def __init__(self, word):
         self.word = word
 
-    # Figures out if the word is actually math, then handles that separately
+    # Figures out if the word is actually math related, then handles that separately
     def Math(self):
         symbols = ['+', '-', '*', '/', '%', '^', '//']
-        if self.word in symbols or self.word.isdigit():
-            math = {'1': {
-                'Root' : None,
-                'Derive' : None,
-                'Meaning' : 'Math',
-                'Function' : None,
-                'Sentence' : None,
-                'Synonyms' : None,
-                'Antonyms' : None
-                }}
-            return math
-        else:
-            return False
+        math = {'1': {
+            'Root' : None,
+            'Derive' : None,
+            'Meaning' : 'Math',
+            'Function' : None,
+            'Sentence' : None,
+            'Synonyms' : None,
+            'Antonyms' : None
+            }}
+        
+        try:
+            number = w2n.word_to_num(self.word)
+            if type(number) == int or type(number) == float:
+                return math
+        except ValueError:           
+            if self.word in symbols or self.word.isdigit():
+                return math
+            else:
+                return False
             
     # Finds the first letter of the word, return 'sym' if it's a symbol    
     def Index(self):
@@ -240,18 +247,21 @@ class Word():
         else:
             try:
                 ins = self.Harvest()
-                print(f'\n{ins}')
-                print(f'Would you like to use harvested definition for {self.word}?')
+                for meaning in ins:
+                    print(f'{meaning}: {ins[meaning]["Meaning"]}')
+                print(f'Would you like to use a harvested definition for {self.word}?')
                 if input().lower() == 'yes':
-                    print(f'{self.word} has {len(ins)} number of meanings. How many of them do you want?')
-                    number = input()
-                    for meaning in ins:
-                        if int(meaning) > int(number):
-                            ins.pop(meaning, None)
+                    if len(ins) > 1:
+                        print(f'{self.word} has {len(ins)} meanings. Which ones do you want? eg. 1 2 3')
+                        take = input().split()
+                        for meaning in ins:
+                            if int(meaning) in take:
+                                ins.pop(meaning, None)
                 else:
                     raise KeyError
                         
             except KeyError:
+                meaning = []
                 while True:
                     print(f'What is the meaning of the word \"{self.word}\"?')
                     meaning.append(input())
@@ -307,15 +317,21 @@ class Word():
 class Sentence():
     def __init__(self, sentence):
         self.sentence = sentence
-
-    # Finds words in a sentence, also splitting up contractions like 'm, 's and n't    
+        
+    # Finds words in a sentence, also splitting up contractions like 'm, 's and n't
     def Words(self):
         s = self.sentence
+        
         for i in range(len(s)):
             if s[i] == "\'":
                 if s[i-1] == 'n' and s[i+1] == 't':
-                    s = s[:i] + "~n\'t" + s[i+2:]
-                    i += 3
+                    # Can't is the only one that splits into "ca" and "n't"
+                    if s[i-3:i].lower() == 'can':
+                        s = s[:i] + "~n\'t" + s[i+2:]
+                        i += 3
+                    else:
+                        s = s[:i-1] + "~n\'t" + s[i+2:]
+                        i += 3
                 else:
                     s = s[:i] + "~\'" + s[i+1:]
                     i += 2
@@ -362,7 +378,8 @@ class Character():
             values += [pref[key][0]]
             trials += [pref[key][1]]
 
-        # Determines if we try a different phrase that hasn't been recorded 
+        # Determines if we try a different phrase that hasn't been recorded.
+        # This gives us more samples to perform the HMM on later.
         avg_value = sum(values) / len(values)
         avg_trial = sum(trials) / (1 + sum(trials))
         avg_weight = avg_value * avg_trial
@@ -475,10 +492,6 @@ class Character():
             user_sentence_dict = Sentence(user_sentence)
             user_meaning.update(user_sentence_dict.Find())
 
-        # Use user_meaning to concatenate sentences to address all subjects of a user input
-        # or add a subject of their own to keep the user engaged.
-        # Also use this to determine how accurate the response is.
-
         with open(f'characters\{self.character}.json', 'r') as f:
             pref = json.load(f)
         response = self.First_State(user, pref)
@@ -488,7 +501,7 @@ class Character():
             response_meaning.update(response_sentence_dict.Find())
 
         response = self.Change(response, response_meaning)
-        response = Format(response)
+        response = Format(response)    
         return response
 
     # Handles scoring of response to user's input.
