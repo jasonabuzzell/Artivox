@@ -109,18 +109,18 @@ def info_add():
                     value = repo[word][meaning][parameter]
                     if logic(define, root, parameter, value):
                         if parameter in str_values:
-                            print(f'{word.lower()}: {define}')
-                            print(f'What is the {parameter.lower()} for {word.lower()}?')
+                            print(Fore.LIGHTWHITE_EX + f'{word.lower()}: {define}')
+                            print(Fore.LIGHTWHITE_EX + f'What is the {parameter.lower()} for {word.lower()}?')
                             value = input()
                         else:
-                            print(f'{word.lower()}: {define}')
-                            print(f'What are the {parameter.lower()} for {word.lower()}?')
+                            print(Fore.LIGHTWHITE_EX + f'{word.lower()}: {define}')
+                            print(Fore.LIGHTWHITE_EX + f'What are the {parameter.lower()} for {word.lower()}?')
                             value = input().split(' | ')
 
                         repo[word][meaning][parameter] = value
-                        with open(f'dictionaries/{c}.json', 'w') as f:
+                        with open(Fore.LIGHTWHITE_EX + f'dictionaries/{c}.json', 'w') as f:
                             json.dump(repo, f)
-                            print('Updated!\n')
+                            print(Fore.LIGHTWHITE_EX + 'Updated!\n')
 
 
 # Finds a word in the dictionary and asks for which definitions to keep
@@ -133,8 +133,8 @@ def simplify(word):
     try:
         ins = repo[word.upper()]
         for meaning in ins:
-            print(f'{meaning}: {ins[meaning]["Meaning"]}')
-        print(f'{word} has {len(ins)} meanings. Which ones do you want? eg. 1 2 3')
+            print(Fore.LIGHTWHITE_EX + f'{meaning}: {ins[meaning]["Meaning"]}')
+        print(Fore.LIGHTWHITE_EX + f'{word} has {len(ins)} meanings. Which ones do you want? eg. 1 2 3')
         take = input().split()
         for meaning in ins:
             if int(meaning) not in take:
@@ -142,7 +142,7 @@ def simplify(word):
     except KeyError:
         return f'Unable to find "{word}"!'
 
-    with open(f'dictionaries/{index}.json', 'w') as f:
+    with open(Fore.LIGHTWHITE_EX + f'dictionaries/{index}.json', 'w') as f:
         repo.update(ins)
         json.dump(repo, f)
 
@@ -216,23 +216,23 @@ class Word:
 
     # Inserts the word's meaning into the dictionary
     def insert(self):
-        meaning, function, sentence, synonyms, antonyms, derives = [], [], [], [], [], []
-        root = None
+        meaning, function, sentence, synonyms, antonyms = [], [], [], [], []
+        derive, root = None, None
         ins = {}
         index = self.index()
 
-        print(f'Does the word "{self.word}" derive from a root? (Yes/No)')
+        print(Fore.LIGHTWHITE_EX + f'Does the word "{self.word}" derive from a root? (Yes/No)')
         if input().lower() == 'yes':
-            print(f'What is the root of the word?')
+            print(Fore.LIGHTWHITE_EX + f'What is the root of the word?')
             root = input()
-            print(f'What kind of derivation is this?')
-            derives = input().split(' | ')
-            print(f'Can you use the word in a sentence?')
+            print(Fore.LIGHTWHITE_EX + f'What kind of derivation is this?')
+            derive = input()
+            print(Fore.LIGHTWHITE_EX + f'Can you use the word in a sentence?')
             sentence.append(input())
 
             ins['1'] = {
                 'Root': root,
-                'Derive': derives,
+                'Derive': derive,
                 'Meaning': meaning,
                 'Function': function,
                 'Sentence': sentence,
@@ -244,8 +244,8 @@ class Word:
             try:
                 ins = self.harvest()
                 for meaning in ins:
-                    print(f'{meaning}: {ins[meaning]["Meaning"]}')
-                print(f'Would you like to use a harvested definition for {self.word}?')
+                    print(Fore.LIGHTWHITE_EX + f'{meaning}: {ins[meaning]["Meaning"]}')
+                print(Fore.LIGHTWHITE_EX + f'Would you like to use a harvested definition for {self.word}?')
                 if input().lower() == 'yes':
                     if len(ins) > 1:
                         print(f'{self.word} has {len(ins)} meanings. Which ones do you want? eg. 1 2 3')
@@ -259,21 +259,21 @@ class Word:
             except KeyError:
                 meaning = []
                 while True:
-                    print(f'What is the meaning of the word \"{self.word}\"?')
+                    print(Fore.LIGHTWHITE_EX + f'What is the meaning of the word \"{self.word}\"?')
                     meaning.append(input())
-                    print('What function does this word have in a sentence?')
+                    print(Fore.LIGHTWHITE_EX + 'What function does this word have in a sentence?')
                     function.append(input())
-                    print('Can you use the word in a sentence?')
+                    print(Fore.LIGHTWHITE_EX + 'Can you use the word in a sentence?')
                     sentence.append(input())
-                    print('Any synonyms for this word?')
+                    print(Fore.LIGHTWHITE_EX + 'Any synonyms for this word?')
                     synonyms.append(input().split(' | '))
-                    print('Any antonyms?')
+                    print(Fore.LIGHTWHITE_EX + 'Any antonyms?')
                     antonyms.append(input().split(' | '))
 
                     for i in range(len(meaning)):
                         ins[str(i + 1)] = {
                             'Root': root,
-                            'Derive': derives,
+                            'Derive': derive,
                             'Meaning': meaning[i],
                             'Function': function[i],
                             'Sentence': sentence[i],
@@ -281,7 +281,7 @@ class Word:
                             'Antonyms': antonyms[i]
                         }
 
-                    print('Are there any other meanings of this word? (Yes/No)')
+                    print(Fore.LIGHTWHITE_EX + 'Are there any other meanings of this word? (Yes/No)')
                     if input().lower() != 'yes':
                         break
 
@@ -322,8 +322,10 @@ class Sentence:
         words = sentence_dict.keys()
 
         for word in sentence_dict:
-            for meaning in sentence_dict:
-                functions += sentence_dict[word][meaning]['Function']
+            for meaning in sentence_dict[word]:
+                functions_dict = sentence_dict[word][meaning]['Function']
+                for function in functions_dict:
+                    functions += function
 
         # Indicative/Declarative (Fact) = Must end in period, can be any tense
         # Imperative (Command) = Must end in period, must use infinitives, negative commands use do+not+infinitive
@@ -365,15 +367,16 @@ class Sentence:
             for meaning in sentence_dict[word]:
                 function = sentence_dict[word][meaning]['Function']
                 function = (f.lower() for f in function)
-                derives = sentence_dict[word[i]][meaning]['Derives']
-                derives = (d.lower() for d in derives)
+                derive = sentence_dict[words[i]][meaning]['Derive']
+                if derive:
+                    derive = derive.lower()
 
                 # This if-case checks that we aren't using interrogative phrasing,
                 # where the word 'you' would be slipped in between
                 if 'verb' in function:
-                    if 'past' in derives:
+                    if 'past' == derive:
                         tense = 'past'
-                    elif 'future' in derives:
+                    elif 'future' == derive:
                         tense = 'future'
                     else:
                         tense = 'present'
@@ -383,9 +386,8 @@ class Sentence:
                         function_second = sentence_dict[words[i+j]][meaning]['Function']
                         if 'verb' in (f.lower() for f in function_second):
                             # That means word[i] is an indicator of tense and word[i+1] is an indicator of state
-                            derives_second = sentence_dict[words[i+j]][meaning]['Derives']
-                            derives_second = (d.lower() for d in derives_second)
-                            if 'gerund' in derives_second:
+                            derive_second = sentence_dict[words[i+j]][meaning]['Derive'].lower()
+                            if 'gerund' == derive_second:
                                 state = 'continuous'
                             elif word[i+j].lower() == 'been':
                                 state = 'perfect continuous'
@@ -399,8 +401,8 @@ class Sentence:
                     else:
                         state = 'simple'
                         break
-
-        tense = tense + ' ' + state
+        if tense != '':
+            tense = tense + ' ' + state
         sentence_dict['TENSE'] = tense
 
         return sentence_dict
@@ -413,7 +415,10 @@ class Sentence:
         for word in sentence_dict:
             for meaning in sentence_dict[word]:
                 function = sentence_dict[word][meaning]['Function']
-                word_derive = [word.lower()] + [sentence_dict[word][meaning]['Derives'].lower()]
+                derive = sentence_dict[word][meaning]['Derive']
+                if derive:
+                    derive = derive.lower()
+                word_derive = [word.lower()] + [derive]
                 if function == 'Pronoun' or function == 'Noun':
                     if 'i' in word_derive or 'we' in word_derive:
                         perspectives += ['First person']
@@ -477,7 +482,7 @@ class Character:
     def learning(self):
         global learning
 
-        print(f'Do you want {self.character} to learn during this session? (Yes/No)')
+        print(Fore.LIGHTWHITE_EX + f'Do you want {self.character} to learn during this session? (Yes/No)')
         answer = input()
         if answer.lower() == 'yes':
             learning = 1
@@ -507,19 +512,56 @@ class Character:
         phrase = random.choices(keys, values, k=1)[0]
         return phrase
 
-        # Determines if the character will greet the user, and how
+    # Will reformat the sentences correctly.
+    @staticmethod
+    def reformat(response, response_meaning):
+        response = response.lower()
+        personal_pronouns = ['you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them']
 
+        words = re.findall(r"[\w']+|[.,!?;]", response)
+        response = ''
+        print(words)
+        print(response_meaning)
+
+        for word in words:
+            if word not in personal_pronouns:
+                word_dict = Word(word)
+                index = word_dict.index()
+                with open(f'dictionaries/{index}.json', 'r') as f:
+                    repo = json.load(f)
+                for meaning in repo[word.upper()]:
+                    function = repo[word.upper()][meaning]['Function']
+                    if function and function.lower() == 'pronoun':
+                        word = word[0].upper() + word[1:]
+            response += word
+
+        sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", response)
+        response = ''
+
+        for sentence in sentences:
+            sentence = sentence[0].upper() + sentence[1:]
+            response += sentence
+
+        return response
+
+    # Determines if the character will greet the user, and how
     def greeting(self):
         with open(f'characters/{self.character}.json', 'r') as f:
             pref = json.load(f)
         try:
             greetings = pref['Greetings']
             greeting = self.weighted_selection(greetings)
+            sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", greeting)
+            for sentence in sentences:
+                sentence_dict = Sentence(sentence)
+                sentence_dict.find()
+            greeting = self.reformat(greeting, greetings)
             return greeting
         except (ValueError, ZeroDivisionError):
             try:
                 responses = pref['Responses']
                 greeting = self.weighted_selection(responses)
+                greeting = self.reformat(greeting, responses)
                 return greeting
             except KeyError:
                 return
@@ -615,6 +657,7 @@ class Character:
             response_meaning.update(response_sentence_dict.find())
 
         response = self.change(response, response_meaning)
+        response = self.reformat(response, response_meaning)
         return response
 
     # Handles scoring of response to user's input.
@@ -709,7 +752,7 @@ def main():
                     character.scoring(user, response, input())
 
     except KeyboardInterrupt:
-        print(Fore.LIGHTWHITE_EX + 'Closing...')
+        print('Closing...')
 
 
 if __name__ == "__main__":
