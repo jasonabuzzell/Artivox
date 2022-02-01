@@ -315,69 +315,117 @@ class Sentence:
     def __init__(self, sentence):
         self.sentence = sentence
 
-    # Interprets the mood of the sentence and adds it to the sentence dictionary.
+    # Interprets the mood of the sentence and adds it to the sentence dictionary
     @staticmethod
     def mood(sentence_dict):
-        sentence_mood = {}
+        functions = []
+        words = sentence_dict.keys()
 
-        # Dictionary needs cleaning
-        mood_dict = {
-            'Indicative': {
-                'Words': [],
-                'Tenses': ['Simple',
-                           'Progressive',
-                           'Perfect']
-            },
-            'Imperative': {
-                'Words': ['Do'],
-                'Tenses': ['Base']
-            },
-            'Subjunctive': {
-                'Words': ['That'],
-                'Tenses': []
-            },
-            'Conditional': {
-                'Words': ['Might', 'Could', 'Would', 'If', 'When'],
-                'Tenses': []
-            },
-            'Infinitive': {
-                'Words': ['To'],
-                'Tenses': ['Base']
-            },
-            'Interrogative': {
-                'Words': ['?'],
-                'Tenses': []
-            }
-        }
-
-        # tenses = ['simple', 'continuous', 'perfect', 'perfect continuous', 'present', 'past', 'future']
-
-        # Work out the correlation between tenses and roots
         for word in sentence_dict:
-            for mood in mood_dict:
-                if word in mood_dict[mood]['Words']:
-                    try:
-                        sentence_mood[mood] += 1
-                    except KeyError:
-                        sentence_mood[mood] = 1
+            for meaning in sentence_dict:
+                functions += sentence_dict[word][meaning]['Function']
 
-        mood = max(sentence_mood, key=sentence_mood.get)
-        sentence_dict['Mood'] = mood
+        # Indicative/Declarative (Fact) = Must end in period, can be any tense
+        # Imperative (Command) = Must end in period, must use infinitives, negative commands use do+not+infinitive
+        # Conditional (Condition) = Must have helping verb, typically has 'if' or 'when'
+        # Subjunctive (Uncertainty) = Must have two simple present verbs, typically has 'that'
+        # Interrogative (Question = Must have '?'
+
+        if '?' in words:
+            sentence_dict['MOOD'] = 'Interrogative'
+            return sentence_dict
+
+        elif 'do not' in words or 'Pronoun' not in functions:
+            sentence_dict['MOOD'] = 'Imperative'
+            return sentence_dict
+
+        elif 'if' in words:
+            sentence_dict['MOOD'] = 'Conditional'
+
+        elif 'that' in words:
+            sentence_dict['MOOD'] = 'Subjunctive'
+
+        else:
+            sentence_dict['MOOD'] = 'Indicative'
 
         return sentence_dict
 
-    # Finds and adds to the subjects in a sentence to the sentence dictionary.
+    # Interprets the tense of the sentence and adds it to the sentence dictionary
+    @staticmethod
+    def tense(words, sentence_dict):
+        tense, state = '', ''
+
+        if '?' in words:
+            j = 2
+        else:
+            j = 1
+
+        for i in range(len(words)):
+            word = words[i]
+            for meaning in sentence_dict[word]:
+                function = sentence_dict[word][meaning]['Function']
+                function = (f.lower() for f in function)
+                derives = sentence_dict[word[i]][meaning]['Derives']
+                derives = (d.lower() for d in derives)
+
+                # This if-case checks that we aren't using interrogative phrasing,
+                # where the word 'you' would be slipped in between
+                if 'verb' in function:
+                    if 'past' in derives:
+                        tense = 'past'
+                    elif 'future' in derives:
+                        tense = 'future'
+                    else:
+                        tense = 'present'
+
+                    # Checking to see if the state is not 'simple'
+                    if words[i+j]:
+                        function_second = sentence_dict[words[i+j]][meaning]['Function']
+                        if 'verb' in (f.lower() for f in function_second):
+                            # That means word[i] is an indicator of tense and word[i+1] is an indicator of state
+                            derives_second = sentence_dict[words[i+j]][meaning]['Derives']
+                            derives_second = (d.lower() for d in derives_second)
+                            if 'gerund' in derives_second:
+                                state = 'continuous'
+                            elif word[i+j].lower() == 'been':
+                                state = 'perfect continuous'
+                            else:
+                                state = 'perfect'
+                            break
+                        else:
+                            state = 'simple'
+                            break
+
+                    else:
+                        state = 'simple'
+                        break
+
+        tense = tense + ' ' + state
+        sentence_dict['TENSE'] = tense
+
+        return sentence_dict
+
+    # Finds and adds the subjects and perspectives in a sentence to the sentence dictionary.
     @staticmethod
     def subject(sentence_dict):
-        subjects = []
+        subjects, perspectives = [], []
 
         for word in sentence_dict:
-            for meaning in word:
+            for meaning in sentence_dict[word]:
                 function = sentence_dict[word][meaning]['Function']
+                word_derive = [word.lower()] + [sentence_dict[word][meaning]['Derives'].lower()]
                 if function == 'Pronoun' or function == 'Noun':
-                    subjects += word
+                    if 'i' in word_derive or 'we' in word_derive:
+                        perspectives += ['First person']
+                    if 'you' in word_derive:
+                        perspectives += ['Second person']
+                    else:
+                        perspectives += ['Third person']
+                    subjects += [word]
 
         sentence_dict['SUBJECTS'] = subjects
+        sentence_dict['PERSPECTIVES'] = perspectives
+
         return sentence_dict
 
     # Find words in a sentence, also splitting up contractions like 'm, 's and n't
@@ -412,7 +460,9 @@ class Sentence:
             word_dict = Word(word)
             sentence_dict[word] = word_dict.find()
 
+        # Adds additional parameters
         sentence_dict = self.subject(sentence_dict)
+        sentence_dict = self.tense(words, sentence_dict)
         sentence_dict = self.mood(sentence_dict)
 
         return sentence_dict

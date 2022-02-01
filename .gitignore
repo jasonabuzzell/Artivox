@@ -1,4 +1,6 @@
 old/
+.idea/
+venv/
 
 # No Artivox yet
 Artivox.py
@@ -8,3 +10,5 @@ Artivox XYZ.txt
 # For later use
 test.csv
 test.py
+
+.gitignore
