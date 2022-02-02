@@ -21,6 +21,7 @@ learning = 0
 
 # Generates new dictionaries for characters, symbols and words starting with each letter in new directories
 def generate():
+
     if not os.path.exists('dictionaries'):
         os.makedirs('dictionaries')
 
@@ -31,9 +32,13 @@ def generate():
         with open('dictionaries/sym.json', 'w') as f:
             json.dump({}, f)
 
+    if not os.path.exists('characters/characters.json'):
+        with open('characters/characters.json', 'w') as f:
+            json.dump({'USERS': [], 'RESPONDERS': ['[1]', '[2]', '[3]', '[4]', '[5]']}, f)
+
     for i in range(5):
-        if not os.path.exists(f'characters/{i + 1}.json'):
-            with open(f'characters/{i + 1}.json', 'w') as f:
+        if not os.path.exists(f'characters/[{i + 1}].json'):
+            with open(f'characters/[{i + 1}].json', 'w') as f:
                 json.dump({'Greetings': {}, 'Responses': {}}, f)
 
     for c in ascii_lowercase:
@@ -146,9 +151,9 @@ def simplify(word):
         repo.update(ins)
         json.dump(repo, f)
 
-
 # ------------------------------------------------------------------------------------------------------
 # CLASSES
+
 
 # Handles the word
 class Word:
@@ -161,11 +166,11 @@ class Word:
         math = {'1': {
             'Root': None,
             'Derive': None,
-            'Meaning': 'Math',
-            'Function': None,
-            'Sentence': None,
-            'Synonyms': None,
-            'Antonyms': None
+            'Meaning': ['Math'],
+            'Function': [],
+            'Sentence': [],
+            'Synonyms': [],
+            'Antonyms': []
         }}
 
         try:
@@ -200,13 +205,13 @@ class Word:
                 raise KeyError
 
             i = 0
-            for key in meanings.keys():
+            for key in meanings:
                 ins[str(i + 1)] = {
                     'Root': None,
                     'Derive': None,
                     'Meaning': meanings[key][1],
                     'Function': meanings[key][0],
-                    'Sentence': None,
+                    'Sentence': [],
                     'Synonyms': word_dict['SYNONYMS'],
                     'Antonyms': word_dict['ANTONYMS']
                 }
@@ -242,17 +247,19 @@ class Word:
 
         else:
             try:
-                ins = self.harvest()
-                for meaning in ins:
-                    print(Fore.LIGHTWHITE_EX + f'{meaning}: {ins[meaning]["Meaning"]}')
+                harvest = self.harvest()
+                for meaning in harvest:
+                    print(Fore.LIGHTWHITE_EX + f'{meaning}: {harvest[meaning]["Meaning"]}')
                 print(Fore.LIGHTWHITE_EX + f'Would you like to use a harvested definition for {self.word}?')
                 if input().lower() == 'yes':
-                    if len(ins) > 1:
-                        print(f'{self.word} has {len(ins)} meanings. Which ones do you want? eg. 1 2 3')
+                    if len(harvest) > 1:
+                        print(f'{self.word} has {len(harvest)} meanings. Which ones do you want? eg. 1 2 3')
                         take = input().split()
-                        for meaning in ins:
-                            if int(meaning) not in take:
-                                ins.pop(meaning, None)
+                        for meaning in harvest:
+                            if meaning in take:
+                                ins[meaning] = harvest[meaning]
+                    else:
+                        ins = harvest
                 else:
                     raise KeyError
 
@@ -317,15 +324,12 @@ class Sentence:
 
     # Interprets the mood of the sentence and adds it to the sentence dictionary
     @staticmethod
-    def mood(sentence_dict):
+    def mood(words, sentence_dict):
         functions = []
-        words = sentence_dict.keys()
-
-        for word in sentence_dict:
+        for i in range(len(words)):
+            word = words[i]
             for meaning in sentence_dict[word]:
-                functions_dict = sentence_dict[word][meaning]['Function']
-                for function in functions_dict:
-                    functions += function
+                functions += [sentence_dict[word][meaning]['Function']]
 
         # Indicative/Declarative (Fact) = Must end in period, can be any tense
         # Imperative (Command) = Must end in period, must use infinitives, negative commands use do+not+infinitive
@@ -334,21 +338,21 @@ class Sentence:
         # Interrogative (Question = Must have '?'
 
         if '?' in words:
-            sentence_dict['MOOD'] = 'Interrogative'
+            sentence_dict['Mood'] = 'Interrogative'
             return sentence_dict
 
         elif 'do not' in words or 'Pronoun' not in functions:
-            sentence_dict['MOOD'] = 'Imperative'
+            sentence_dict['Mood'] = 'Imperative'
             return sentence_dict
 
         elif 'if' in words:
-            sentence_dict['MOOD'] = 'Conditional'
+            sentence_dict['Mood'] = 'Conditional'
 
         elif 'that' in words:
-            sentence_dict['MOOD'] = 'Subjunctive'
+            sentence_dict['Mood'] = 'Subjunctive'
 
         else:
-            sentence_dict['MOOD'] = 'Indicative'
+            sentence_dict['Mood'] = 'Indicative'
 
         return sentence_dict
 
@@ -357,6 +361,8 @@ class Sentence:
     def tense(words, sentence_dict):
         tense, state = '', ''
 
+        # This if-case checks that we aren't using interrogative phrasing,
+        # where the word 'you' would be slipped in between
         if '?' in words:
             j = 2
         else:
@@ -370,9 +376,6 @@ class Sentence:
                 derive = sentence_dict[words[i]][meaning]['Derive']
                 if derive:
                     derive = derive.lower()
-
-                # This if-case checks that we aren't using interrogative phrasing,
-                # where the word 'you' would be slipped in between
                 if 'verb' in function:
                     if 'past' == derive:
                         tense = 'past'
@@ -403,7 +406,7 @@ class Sentence:
                         break
         if tense != '':
             tense = tense + ' ' + state
-        sentence_dict['TENSE'] = tense
+        sentence_dict['Tense'] = tense
 
         return sentence_dict
 
@@ -428,8 +431,8 @@ class Sentence:
                         perspectives += ['Third person']
                     subjects += [word]
 
-        sentence_dict['SUBJECTS'] = subjects
-        sentence_dict['PERSPECTIVES'] = perspectives
+        sentence_dict['Subjects'] = subjects
+        sentence_dict['Perspectives'] = perspectives
 
         return sentence_dict
 
@@ -453,7 +456,7 @@ class Sentence:
             else:
                 i += 1
 
-        words = re.findall(r"[\w']+|[\s]+|[-]+|[.,!?;]", s)
+        words = re.findall(r"[\w']+|[\s]|[.,!?;\s]", s)
         return words
 
     # Finds the meaning of the words in the sentence
@@ -468,7 +471,7 @@ class Sentence:
         # Adds additional parameters
         sentence_dict = self.subject(sentence_dict)
         sentence_dict = self.tense(words, sentence_dict)
-        sentence_dict = self.mood(sentence_dict)
+        sentence_dict = self.mood(words, sentence_dict)
 
         return sentence_dict
 
@@ -477,6 +480,38 @@ class Sentence:
 class Character:
     def __init__(self, character):
         self.character = character
+
+    # Finds characters of a specific role (user or responder) in repository
+    @staticmethod
+    def characters(role):
+        with open('characters/characters.json', 'r') as f:
+            characters = json.load(f)
+        people = characters[role]
+        return people
+
+    # Inserts character of a specific role into repository
+    def insert(self, role):
+        with open('characters/characters.json', 'r') as f:
+            characters = json.load(f)
+        people = characters[role]
+        if self.character not in people:
+            people += [self.character]
+            with open('characters/characters.json', 'w') as f:
+                json.dump(characters, f)
+            if role == 'USERS':
+                for character in characters['RESPONDERS']:
+                    with open(f'characters/{character}.json', 'r') as f:
+                        pref = json.load(f)
+                    for key in pref:
+                        pref[key][self.character] = {}
+                    with open(f'characters/{character}.json', 'w') as f:
+                        json.dump(pref, f)
+                return f'{self.character} added to repository!'
+            if role == 'RESPONDERS':
+                with open(f'characters/{self.character}.json', 'w') as f:
+                    json.dump({'Greetings': {}, 'Responses': {}}, f)
+        else:
+            return f'{self.character} already in repository!'
 
     # Determines if the character will learn this session
     def learning(self):
@@ -518,38 +553,43 @@ class Character:
         response = response.lower()
         personal_pronouns = ['you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them']
 
-        words = re.findall(r"[\w']+|[.,!?;]", response)
+        sentences = re.findall(r"[\w'\s+,+-]+|[.!?;\s]+", response)
         response = ''
-        print(words)
-        print(response_meaning)
 
-        for word in words:
-            if word not in personal_pronouns:
-                word_dict = Word(word)
-                index = word_dict.index()
-                with open(f'dictionaries/{index}.json', 'r') as f:
-                    repo = json.load(f)
-                for meaning in repo[word.upper()]:
-                    function = repo[word.upper()][meaning]['Function']
-                    if function and function.lower() == 'pronoun':
-                        word = word[0].upper() + word[1:]
-            response += word
+        for sentence in sentences:
+            sentence = Sentence(sentence)
+            words = sentence.words()
+            for word in words:
+                if word not in personal_pronouns:
+                    word_dict = Word(word)
+                    index = word_dict.index()
+                    with open(f'dictionaries/{index}.json', 'r') as f:
+                        repo = json.load(f)
+                    for meaning in repo[word.upper()]:
+                        function = repo[word.upper()][meaning]['Function']
+                        if function and function.lower() == 'pronoun':
+                            word = word[0].upper() + word[1:]
+                response += word
 
-        sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", response)
+        sentences = re.findall(r"[\w'\s,]+|[.!?;\s]+", response)
         response = ''
 
         for sentence in sentences:
             sentence = sentence[0].upper() + sentence[1:]
             response += sentence
 
+        # Have to clean up the "can't" issue created from the sentence.words() contraction issue
+        response = response.replace('cann\'t', 'can\'t')
+        response = response.replace('Cann\'t', 'Can\'t')
+
         return response
 
     # Determines if the character will greet the user, and how
-    def greeting(self):
+    def greeting(self, user):
         with open(f'characters/{self.character}.json', 'r') as f:
             pref = json.load(f)
         try:
-            greetings = pref['Greetings']
+            greetings = pref['Greetings'][user]
             greeting = self.weighted_selection(greetings)
             sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", greeting)
             for sentence in sentences:
@@ -559,7 +599,7 @@ class Character:
             return greeting
         except (ValueError, ZeroDivisionError):
             try:
-                responses = pref['Responses']
+                responses = pref['Responses'][user]
                 greeting = self.weighted_selection(responses)
                 greeting = self.reformat(greeting, responses)
                 return greeting
@@ -572,6 +612,7 @@ class Character:
         change = ''
         sentence = Sentence(response)
         words = sentence.words()
+        print(words)
 
         for word in words:
             try:
@@ -583,47 +624,49 @@ class Character:
 
         return change
 
+    # Change out first, second and third state for HMM model (not looking for phrases anymore)
     # Returns the best response to input
-    def first_state(self, user, pref):
+    def first_state(self, user, user_input, pref):
         try:
-            responses = pref['Responses'][user.lower()]
+            responses = pref['Responses'][user][user_input.lower()]
             return self.weighted_selection(responses)
 
         except (ValueError, ZeroDivisionError):
-            return self.second_state(user, pref)
+            return self.second_state(user, user_input, pref)
 
         except KeyError:
-            return self.third_state(user, pref)
+            return self.third_state(user, user_input, pref)
 
     # Returns different response to input
     @staticmethod
-    def second_state(user, pref):
+    def second_state(user, user_input, pref):
         psb = []
-        responses = pref['Responses']
+        responses = pref['Responses'][user]
 
         for string in responses:
-            if string != user.lower():
+            if string != user_input.lower():
                 psb += [string]
         if psb:
             response = psb[random.randint(0, len(psb) - 1)]
         else:
-            response = user
+            response = user_input
 
         return response
 
     # Returns any input to input
     @staticmethod
-    def third_state(user, pref):
+    def third_state(user, user_input, pref):
         keys, values = [], []
         score = {}
 
+        # Tries first to find another
         try:
-            responses = pref['Responses']
+            responses = pref['Responses'][user]
             for string in responses:
                 score[string] = 0
                 words = re.findall(r"[\w']+|[.,!?;]", string)
                 for word in words:
-                    if word in user.lower():
+                    if word in user_input.lower():
                         score[string] += 1
 
             closest = max(score, key=score.get)
@@ -636,12 +679,12 @@ class Character:
             response = random.choices(keys, values, k=1)[0]
             return response
         except (ValueError, KeyError):
-            return user
+            return user_input
 
     # Handles how the character should respond to the user's input.   
-    def response(self, user):
+    def response(self, user, user_input):
         user_meaning, response_meaning = {}, {}
-        user_sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", user)
+        user_sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", user_input)
 
         # Finds the meaning of the user input
         for user_sentence in user_sentences:
@@ -650,7 +693,7 @@ class Character:
 
         with open(f'characters/{self.character}.json', 'r') as f:
             pref = json.load(f)
-        response = self.first_state(user, pref)
+        response = self.first_state(user, user_input, pref)
         response_sentences = re.findall(r"[\w'\s]+|[.,!?;\s]+", response)
         for response_sentence in response_sentences:
             response_sentence_dict = Sentence(response_sentence)
@@ -662,26 +705,26 @@ class Character:
 
     # Handles scoring of response to user's input.
     # Add more scoring details to check for other parameters and score more accurately. 
-    def scoring(self, user, response, score):
+    def scoring(self, user, user_input, response, score):
         score = int(score) / 10
 
         with open(f'characters/{self.character}.json', 'r') as f:
             pref = json.load(f)
 
-        if user:
+        if user_input:
             try:
-                prev_score = pref['Responses'][user.upper()][response]
+                prev_score = pref['Responses'][user][user_input.upper()][response]
                 prev_score[1] += 1
                 prev_score[0] = round((score + prev_score[0]) / prev_score[1], 3)
             except KeyError:
-                pref['Responses'][user.upper()] = {response: [score, 1]}
+                pref['Responses'][user][user_input.upper()] = {response: [score, 1]}
         else:
             try:
-                prev_score = pref['Greetings'][response.upper()]
+                prev_score = pref['Greetings'][user][response.upper()]
                 prev_score[1] += 1
                 prev_score[0] = round((score + prev_score[0]) / prev_score[1], 3)
             except KeyError:
-                pref['Greetings'][response.upper()] = [score, 1]
+                pref['Greetings'][user][response.upper()] = [score, 1]
 
         with open(f'characters/{self.character}.json', 'w') as f:
             json.dump(pref, f)
@@ -698,20 +741,22 @@ class Character:
                 key_value = key_value.split(' : ')
                 key = key_value[0].strip()
                 values = key_value[1].split(' | ')
-                full[key] = {}
+                full[key.upper()] = {}
                 for value in values:
                     value = value.strip()
-                    full[key].update({value: [1.0, 1]})
+                    full[key.upper()].update({value: [1.0, 1]})
 
         with open(f'characters/{self.character}.json', 'r') as f:
             pref = json.load(f)
-        pref['Responses'].update(full)
+        users = pref['Responses']
+        for user in users:
+            pref['Responses'][user].update(full)
         with open(f'characters/{self.character}.json', 'w') as f:
             json.dump(pref, f)
 
-
 # ----------------------------------------------------------------------------------------------------
 # MAIN
+
 
 # Handles the allocation of user inputs and responses.
 def main():
@@ -721,35 +766,64 @@ def main():
     resort()
 
     try:
-        print(Fore.LIGHTWHITE_EX + 'Who would you like to talk to? (1-5)')
-        char = input()
-        if not char.isdigit and 1 <= int(char) <= 5:
-            print(Fore.RED + "Not a character!")
-        else:
-            character = Character(char)
-            character.learning()
-            character.driver()
-            greeting = character.greeting()
-            if greeting:
-                print(Fore.LIGHTGREEN_EX + f'{char}: {greeting}')
-                if learning == 1:
-                    # Scoring of Greeting
-                    print(Fore.LIGHTWHITE_EX + 'Scoring? (0-10): ')
-                    character.scoring(None, greeting, input())
+        roles = ['USERS', 'RESPONDERS']
+        examples = {
+            'USERS': ['[ira]', 'Create new user...'],
+            'RESPONDERS': ['[1]', 'Create new responder...']
+        }
+        people = {}
 
+        # Handles multiple users and character selection
+        for role in roles:
             while True:
-                # User input
-                print(Fore.CYAN + 'User: ')
-                user = input()
+                characters = Character.characters(role)
+                ref_role = role.lower()[:(len(role) - 1)]
+                characters += [f'Create new {ref_role}...']
+                i = 1
+                for character in characters:
+                    print(f'{i}: {character}')
+                    i += 1
+                print(f'Please select a {ref_role}. (eg. {examples[role][0]}, {examples[role][1]})')
+                person = input()
+                if 'Create new' in person:
+                    print('Please insert new name...')
+                    new_person = input()
+                    person_char = Character(new_person)
+                    print(person_char.insert(role))
+                    people[ref_role] = new_person
+                    break
+                elif person not in characters:
+                    print(f'Unable to find {ref_role}! Please try again...\n')
+                else:
+                    people[ref_role] = person
+                    break
 
-                # Response to User Input
-                response = character.response(user)
-                print(Fore.LIGHTGREEN_EX + f'{char}: {response}')
+        user = people['user']
+        char = people['responder']
+        character = Character(char)
+        character.learning()
+        character.driver()
+        greeting = character.greeting(user)
+        if greeting:
+            print(Fore.LIGHTGREEN_EX + f'{char}: {greeting}')
+            if learning == 1:
+                # Scoring of Greeting
+                print(Fore.LIGHTWHITE_EX + 'Scoring? (0-10): ')
+                character.scoring(None, user, greeting, input())
 
-                if learning == 1:
-                    # Scoring of Response
-                    print(Fore.LIGHTWHITE_EX + 'Scoring? (0-10): ')
-                    character.scoring(user, response, input())
+        while True:
+            # User input
+            print(Fore.CYAN + 'User: ')
+            user_input = input()
+
+            # Response to User Input
+            response = character.response(user, user_input)
+            print(Fore.LIGHTGREEN_EX + f'{char}: {response}')
+
+            if learning == 1:
+                # Scoring of Response
+                print(Fore.LIGHTWHITE_EX + 'Scoring? (0-10): ')
+                character.scoring(user, user_input, response, input())
 
     except KeyboardInterrupt:
         print('Closing...')

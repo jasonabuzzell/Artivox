@@ -2,6 +2,8 @@ old/
 .idea/
 venv/
 
+Artitalk_Testing.py
+
 # No Artivox yet
 Artivox.py
 Artivox.maxpat
@@ -10,5 +12,3 @@ Artivox XYZ.txt
 # For later use
 test.csv
 test.py
-
-.gitignore
