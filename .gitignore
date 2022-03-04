@@ -1,6 +1,7 @@
 old/
 .idea/
 venv/
+test/
 
 Artitalk_Testing.py
 

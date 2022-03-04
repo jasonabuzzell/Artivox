@@ -1,1 +1,1 @@
-{"USERS": ["[ira]"], "RESPONDERS": ["[1]", "[2]", "[3]", "[4]", "[5]"]}
+{"[1]": {"Converse": {"Time Mean": 8, "Time Deviation": 5, "Multiple": 3, "Silent Mean": 4, "Silent Deviation": 2, "Separation Mean": 4, "Separation Deviation": 2}}, "[ira]": {"Converse": {"Time Mean": 8, "Time Deviation": 5, "Multiple": 3, "Silent Mean": 4, "Silent Deviation": 2, "Separation Mean": 4, "Separation Deviation": 2}}}
