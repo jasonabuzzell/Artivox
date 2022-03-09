@@ -8,4 +8,7 @@ understands syntax and semantics, searching for patterns within parameters using
 Python 3.6 to 3.10 (though the one instance match-case would have to be changed), and uses the following third party
 modules: _nltk_, _pattern.text_, _pandas_, _statsmodel.api_, _text2emotion_, and _numpy_. 
 
-If you have any questions, or things that you'd like to be changed, let me know at jasonabuzzell@gmail.com!
+**NOTE:** _Artitalk_ (and _Artivox_, for that matter) are still under development! _Artitalk_ will converse, but
+the syntax will be incorrect and result in non-intellegible sentences. This will be patched soon.
+
+If you have any questions or want to correct some code, let me know at jasonabuzzell@gmail.com!

@@ -494,6 +494,7 @@ class Character:
             if parameter not in reconstruct:
                 reconstruct[parameter] = pref['General'][parameter]
         # Implementing SVO
+        # Might want to make this a global variable instead for simplicity's sake
         for parameter in quant['Meaning']:
             if parameter not in reconstruct:
                 match parameter:
