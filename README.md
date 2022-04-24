@@ -9,6 +9,8 @@ Python 3.6 to 3.10 (though the one instance match-case would have to be changed)
 modules: _nltk_, _pattern.text_, _pandas_, _statsmodel.api_, _text2emotion_, and _numpy_. 
 
 **NOTE:** _Artitalk_ (and _Artivox_, for that matter) are still under development! _Artitalk_ will converse, but
-the syntax will be incorrect and result in non-intellegible sentences. This will be patched soon.
+the syntax will be incorrect and result in non-intellegible sentences. This will be patched soon. You may also notice
+there are a plethora of for loops, and even though they only iterate at most 20 times, this is being cleaned up
+as well!
 
 If you have any questions or want to correct some code, let me know at jasonabuzzell@gmail.com!
